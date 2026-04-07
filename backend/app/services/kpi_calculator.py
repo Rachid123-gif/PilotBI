@@ -126,13 +126,20 @@ def _fetch_rows(db: Client, org_id: str, date_from: str, date_to: str) -> list[d
     """Fetch data_rows for an org within a date range."""
     result = (
         db.table("data_rows")
-        .select("row_data, date_value")
+        .select("data, date")
         .eq("organization_id", org_id)
-        .gte("date_value", date_from)
-        .lte("date_value", date_to)
+        .gte("date", date_from)
+        .lte("date", date_to)
         .execute()
     )
-    return result.data or []
+    # Normalize column names to what the KPI calculator expects
+    rows = []
+    for r in result.data or []:
+        rows.append({
+            "row_data": r.get("data", {}),
+            "date_value": r.get("date"),
+        })
+    return rows
 
 
 def _safe_float(value) -> float:
