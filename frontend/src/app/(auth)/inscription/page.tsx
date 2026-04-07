@@ -31,8 +31,9 @@ export default function InscriptionPage() {
       return;
     }
 
-    // 1. Sign up with Supabase Auth
-    const { data: authData, error: authError } = await supabase.auth.signUp({
+    // Sign up with Supabase Auth
+    // The DB trigger handle_new_user() auto-creates org + profile + trial subscription
+    const { error: authError } = await supabase.auth.signUp({
       email,
       password,
       options: {
@@ -43,56 +44,15 @@ export default function InscriptionPage() {
       },
     });
 
-    if (authError || !authData.user) {
+    if (authError) {
       setError(
-        authError?.message === "User already registered"
+        authError.message === "User already registered"
           ? "Cet email est deja utilise."
-          : "Erreur lors de la creation du compte."
+          : authError.message
       );
       setIsLoading(false);
       return;
     }
-
-    // 2. Create organization
-    const { data: org, error: orgError } = await supabase
-      .from("organizations")
-      .insert({ name: companyName })
-      .select()
-      .single();
-
-    if (orgError || !org) {
-      setError("Erreur lors de la creation de l'organisation.");
-      setIsLoading(false);
-      return;
-    }
-
-    // 3. Create profile
-    const { error: profileError } = await supabase.from("profiles").insert({
-      id: authData.user.id,
-      organization_id: org.id,
-      full_name: fullName,
-      email,
-      role: "owner",
-      language: "fr",
-      onboarding_completed: false,
-    });
-
-    if (profileError) {
-      setError("Erreur lors de la creation du profil.");
-      setIsLoading(false);
-      return;
-    }
-
-    // 4. Create starter subscription
-    await supabase.from("subscriptions").insert({
-      organization_id: org.id,
-      plan: "starter",
-      status: "active",
-      current_period_start: new Date().toISOString(),
-      current_period_end: new Date(
-        Date.now() + 30 * 24 * 60 * 60 * 1000
-      ).toISOString(),
-    });
 
     router.push("/onboarding");
   }

@@ -1,109 +1,84 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { KpiCard } from "@/components/dashboard/kpi-card";
 import { DashboardBarChart } from "@/components/dashboard/bar-chart";
 import { DashboardLineChart } from "@/components/dashboard/line-chart";
 import { DashboardPieChart } from "@/components/dashboard/pie-chart";
 import { PeriodFilter } from "@/components/dashboard/period-filter";
-import type { KpiCardData } from "@/types/dashboard";
+import { AiInsightCard } from "@/components/dashboard/ai-insight-card";
+import { WelcomeModal } from "@/components/dashboard/welcome-modal";
+import { GaugeChart } from "@/components/dashboard/gauge-chart";
+import { RankingTable } from "@/components/dashboard/ranking-table";
+import { ComparisonChart } from "@/components/dashboard/comparison-chart";
+import { useDashboard } from "@/hooks/use-dashboard";
+import { useUser } from "@/hooks/use-user";
 import type { PeriodId } from "@/lib/constants";
-import { CalendarDays } from "lucide-react";
-
-// ---------------------------------------------------------------------------
-// Realistic demo data for a Moroccan SME (distribution company)
-// ---------------------------------------------------------------------------
-
-const DEMO_KPIS: KpiCardData[] = [
-  {
-    type: "revenue",
-    label: "Chiffre d'affaires",
-    value: 2_847_500,
-    previousValue: 2_615_000,
-    changePercent: 8.9,
-    trend: "up",
-    format: "currency",
-    icon: "revenue",
-    sparklineData: [180, 220, 195, 245, 230, 260, 285, 310, 275, 320, 295, 340],
-  },
-  {
-    type: "net_margin",
-    label: "Marge nette",
-    value: 0.142,
-    previousValue: 0.128,
-    changePercent: 10.9,
-    trend: "up",
-    format: "percent",
-    icon: "net_margin",
-    sparklineData: [12, 11, 13, 12, 14, 13, 15, 14, 13, 14, 15, 14],
-  },
-  {
-    type: "active_clients",
-    label: "Clients actifs",
-    value: 347,
-    previousValue: 312,
-    changePercent: 11.2,
-    trend: "up",
-    format: "number",
-    icon: "active_clients",
-    sparklineData: [280, 290, 300, 295, 310, 305, 320, 315, 330, 325, 340, 347],
-  },
-  {
-    type: "critical_stock",
-    label: "Stock critique",
-    value: 12,
-    previousValue: 8,
-    changePercent: -50.0,
-    trend: "down",
-    format: "number",
-    icon: "critical_stock",
-    sparklineData: [5, 6, 4, 7, 8, 6, 9, 7, 10, 8, 11, 12],
-  },
-];
-
-const DEMO_MONTHLY_SALES = [
-  { label: "Jan", value: 1_950_000 },
-  { label: "Fev", value: 2_120_000 },
-  { label: "Mar", value: 2_340_000 },
-  { label: "Avr", value: 2_080_000 },
-  { label: "Mai", value: 2_560_000 },
-  { label: "Jun", value: 2_410_000 },
-  { label: "Jul", value: 2_180_000 },
-  { label: "Aou", value: 1_870_000 },
-  { label: "Sep", value: 2_650_000 },
-  { label: "Oct", value: 2_780_000 },
-  { label: "Nov", value: 2_920_000 },
-  { label: "Dec", value: 2_847_500 },
-];
-
-const DEMO_REVENUE_EVOLUTION = [
-  { label: "Jan", value: 1_950_000 },
-  { label: "Fev", value: 2_120_000 },
-  { label: "Mar", value: 2_340_000 },
-  { label: "Avr", value: 2_080_000 },
-  { label: "Mai", value: 2_560_000 },
-  { label: "Jun", value: 2_410_000 },
-  { label: "Jul", value: 2_180_000 },
-  { label: "Aou", value: 1_870_000 },
-  { label: "Sep", value: 2_650_000 },
-  { label: "Oct", value: 2_780_000 },
-  { label: "Nov", value: 2_920_000 },
-  { label: "Dec", value: 3_100_000 },
-];
-
-const DEMO_CATEGORY_DISTRIBUTION = [
-  { name: "Alimentaire", value: 1_280_000 },
-  { name: "Boissons", value: 620_000 },
-  { name: "Hygiene", value: 410_000 },
-  { name: "Entretien", value: 320_000 },
-  { name: "Electronique", value: 217_500 },
-];
+import { CalendarDays, Loader2, FileUp } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
 
 export default function TableauDeBordPage() {
   const [period, setPeriod] = useState<PeriodId>("this_month");
+  const [showWelcome, setShowWelcome] = useState(false);
+
+  const { user, profile, organization } = useUser();
+  const { kpis, charts, isLoading } = useDashboard(period);
+
+  // Show welcome modal on first visit
+  useEffect(() => {
+    if (profile && !profile.welcome_seen) {
+      setShowWelcome(true);
+    }
+  }, [profile]);
+
+  function handleDismissWelcome() {
+    setShowWelcome(false);
+    // Mark as seen (fire-and-forget)
+    if (profile?.id) {
+      fetch("/api/profile/welcome-seen", { method: "POST" }).catch(() => {});
+    }
+  }
+
+  const sectorLabel = organization?.sector_slug
+    ? getSectorDisplayName(organization.sector_slug)
+    : undefined;
+
+  const hasData = kpis && kpis.length > 0;
+
+  // Separate gauge-type KPIs from regular cards
+  const gaugeKpis = kpis?.filter(
+    (k) =>
+      k.unit === "%" &&
+      [
+        "food_cost_pct",
+        "fill_rate",
+        "occupancy_rate",
+        "occupancy_rate_hotel",
+        "defect_rate",
+        "conversion_rate",
+        "collection_rate",
+        "commercialization_rate",
+        "yield_rate",
+        "on_time_delivery",
+        "waste_rate",
+        "return_rate",
+        "return_rate_ecom",
+      ].includes(k.kpi_type)
+  ) || [];
+
+  const cardKpis = kpis?.filter((k) => !gaugeKpis.includes(k)) || [];
 
   return (
     <div className="space-y-6 animate-fade-in">
+      {/* Welcome modal */}
+      {showWelcome && (
+        <WelcomeModal
+          sectorLabel={sectorLabel}
+          onDismiss={handleDismissWelcome}
+        />
+      )}
+
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
@@ -112,36 +87,133 @@ export default function TableauDeBordPage() {
           </h1>
           <p className="mt-1 text-sm text-ink-3 flex items-center gap-1.5">
             <CalendarDays className="h-3.5 w-3.5" />
-            Derniere mise a jour : 6 avril 2026 a 09:15
+            {sectorLabel || "Votre activite"} — Mis a jour en temps reel
           </p>
         </div>
         <PeriodFilter value={period} onChange={setPeriod} />
       </div>
 
-      {/* KPI Cards */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4 stagger-children">
-        {DEMO_KPIS.map((kpi) => (
-          <KpiCard key={kpi.type} data={kpi} />
-        ))}
-      </div>
+      {/* AI Insight Card (Pro+) */}
+      <AiInsightCard />
 
-      {/* Main bar chart */}
-      <DashboardBarChart
-        title="Ventes mensuelles"
-        data={DEMO_MONTHLY_SALES}
-      />
+      {isLoading ? (
+        <div className="flex items-center justify-center py-20">
+          <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+          <span className="ml-3 text-sm text-ink-3">
+            Chargement de vos donnees...
+          </span>
+        </div>
+      ) : !hasData ? (
+        /* Empty state */
+        <div className="flex flex-col items-center justify-center py-20 text-center">
+          <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-blue-50">
+            <FileUp className="h-8 w-8 text-blue-600" />
+          </div>
+          <h2 className="text-lg font-bold text-ink">
+            Uploadez vos donnees pour commencer
+          </h2>
+          <p className="mt-2 max-w-sm text-sm text-ink-3">
+            Importez votre fichier Excel ou CSV et votre dashboard
+            personnalise sera pret en 30 secondes.
+          </p>
+          <Link href="/donnees/upload">
+            <Button className="mt-6 bg-blue-600 hover:bg-blue-700 text-white">
+              <FileUp className="mr-2 h-4 w-4" />
+              Importer mes donnees
+            </Button>
+          </Link>
+        </div>
+      ) : (
+        <>
+          {/* KPI Cards */}
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 stagger-children">
+            {cardKpis.map((kpi) => (
+              <KpiCard
+                key={kpi.kpi_type}
+                data={{
+                  type: kpi.kpi_type,
+                  label: kpi.label,
+                  value: kpi.value,
+                  previousValue: kpi.previous_value ?? undefined,
+                  changePercent: kpi.change_pct ?? null,
+                  trend:
+                    kpi.change_pct === null || kpi.change_pct === undefined
+                      ? "stable"
+                      : kpi.change_pct > 0
+                        ? "up"
+                        : kpi.change_pct < 0
+                          ? "down"
+                          : "stable",
+                  format: kpi.unit === "MAD" ? "currency" : kpi.unit === "%" ? "percent" : "number",
+                  icon: kpi.kpi_type,
+                }}
+              />
+            ))}
+          </div>
 
-      {/* Two-column charts */}
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-        <DashboardLineChart
-          title="Evolution du chiffre d'affaires"
-          data={DEMO_REVENUE_EVOLUTION}
-        />
-        <DashboardPieChart
-          title="Repartition par categorie"
-          data={DEMO_CATEGORY_DISTRIBUTION}
-        />
-      </div>
+          {/* Gauges row (for percentage KPIs) */}
+          {gaugeKpis.length > 0 && (
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {gaugeKpis.map((kpi) => (
+                <GaugeChart
+                  key={kpi.kpi_type}
+                  title={kpi.label}
+                  value={kpi.value}
+                  unit="%"
+                />
+              ))}
+            </div>
+          )}
+
+          {/* Charts */}
+          {charts && charts.length > 0 && (
+            <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+              {charts.map((chart) =>
+                chart.chart_type === "bar" ? (
+                  <DashboardBarChart
+                    key={chart.kpi_type}
+                    title={chart.title}
+                    data={chart.data_points}
+                  />
+                ) : chart.chart_type === "pie" ? (
+                  <DashboardPieChart
+                    key={chart.kpi_type}
+                    title={chart.title}
+                    data={chart.data_points.map((p) => ({
+                      name: p.label,
+                      value: p.value,
+                    }))}
+                  />
+                ) : (
+                  <DashboardLineChart
+                    key={chart.kpi_type}
+                    title={chart.title}
+                    data={chart.data_points}
+                  />
+                )
+              )}
+            </div>
+          )}
+        </>
+      )}
     </div>
   );
+}
+
+function getSectorDisplayName(slug: string): string {
+  const map: Record<string, string> = {
+    distribution: "Distribution & Commerce de Gros",
+    retail: "Retail & Chaines de Magasins",
+    industrie: "Industrie & Fabrication",
+    transport: "Transport & Logistique",
+    restaurant: "Restaurants & F&B",
+    ecommerce: "E-commerce",
+    clinique: "Cliniques & Sante",
+    pharmacie: "Pharmacies",
+    immobilier: "Immobilier & Promotion",
+    hotel: "Hotels & Riads",
+    services: "Services B2B",
+    agriculture: "Agriculture",
+  };
+  return map[slug] || slug;
 }

@@ -25,7 +25,7 @@ logger = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
 # System prompt
 # ---------------------------------------------------------------------------
-SYSTEM_PROMPT = """Tu es un analyste business intelligence expert pour les PME marocaines.
+BASE_SYSTEM_PROMPT = """Tu es un analyste business intelligence expert pour les PME marocaines.
 Tu produis des rapports mensuels professionnels, clairs et actionnables.
 
 Consignes :
@@ -34,6 +34,7 @@ Consignes :
 - Structure le rapport en sections claires avec des titres.
 - Fournis des analyses chiffrées et des recommandations concrètes.
 - Identifie les tendances, anomalies et opportunités.
+- Compare les KPIs aux benchmarks sectoriels quand c'est pertinent.
 - Reste factuel et base tes analyses uniquement sur les données fournies.
 - Format de sortie : JSON avec un tableau "sections", chaque section ayant "title" et "content".
 
@@ -45,6 +46,17 @@ Exemple de structure de sections :
 5. Tendances et Anomalies
 6. Recommandations
 """
+
+
+def _get_system_prompt(sector_slug: str | None = None) -> str:
+    """Build the system prompt, adding sector-specific expertise if available."""
+    from app.services.sector_registry import get_sector_ai_prompt
+    prompt = BASE_SYSTEM_PROMPT
+    if sector_slug:
+        sector_addition = get_sector_ai_prompt(sector_slug)
+        if sector_addition:
+            prompt += f"\n\nExpertise sectorielle :\n{sector_addition}"
+    return prompt
 
 
 def _build_user_prompt(org_name: str, period: str, kpis: list, row_sample: list) -> str:
@@ -107,8 +119,9 @@ async def generate_monthly_report(
     settings = get_settings()
 
     # Fetch organization info
-    org_result = db.table("organizations").select("name").eq("id", org_id).single().execute()
+    org_result = db.table("organizations").select("name, sector_slug").eq("id", org_id).single().execute()
     org_name = org_result.data.get("name", "Entreprise")
+    sector_slug = org_result.data.get("sector_slug")
 
     # Calculate KPIs for the period
     # Parse period into date range
@@ -123,7 +136,7 @@ async def generate_monthly_report(
         start_date = None
         end_date = None
 
-    kpis = calculate_all_kpis(db, org_id, PeriodType.MONTHLY, start_date, end_date)
+    kpis = calculate_all_kpis(db, org_id, PeriodType.MONTHLY, start_date, end_date, sector_slug=sector_slug)
 
     # Fetch a sample of rows for context
     rows_result = (
@@ -144,7 +157,7 @@ async def generate_monthly_report(
     message = client.messages.create(
         model="claude-sonnet-4-20250514",
         max_tokens=4096,
-        system=SYSTEM_PROMPT,
+        system=_get_system_prompt(sector_slug),
         messages=[
             {"role": "user", "content": user_prompt},
         ],

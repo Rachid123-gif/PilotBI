@@ -9,18 +9,31 @@ import {
   ArrowRight,
   ArrowLeft,
   Truck,
-  ShoppingBag,
+  Store,
+  Factory,
+  UtensilsCrossed,
+  ShoppingCart,
+  HeartPulse,
+  Pill,
+  Building2,
+  Hotel,
   Briefcase,
-  Globe,
-  MoreHorizontal,
+  Sprout,
 } from "lucide-react";
 
 const SECTOR_ICONS: Record<string, React.ReactNode> = {
-  distribution: <Truck className="h-6 w-6" />,
-  retail: <ShoppingBag className="h-6 w-6" />,
-  services: <Briefcase className="h-6 w-6" />,
-  import_export: <Globe className="h-6 w-6" />,
-  autre: <MoreHorizontal className="h-6 w-6" />,
+  distribution: <Truck className="h-5 w-5" />,
+  retail: <Store className="h-5 w-5" />,
+  industrie: <Factory className="h-5 w-5" />,
+  transport: <Truck className="h-5 w-5" />,
+  restaurant: <UtensilsCrossed className="h-5 w-5" />,
+  ecommerce: <ShoppingCart className="h-5 w-5" />,
+  clinique: <HeartPulse className="h-5 w-5" />,
+  pharmacie: <Pill className="h-5 w-5" />,
+  immobilier: <Building2 className="h-5 w-5" />,
+  hotel: <Hotel className="h-5 w-5" />,
+  services: <Briefcase className="h-5 w-5" />,
+  agriculture: <Sprout className="h-5 w-5" />,
 };
 
 export default function OnboardingStep2() {
@@ -38,34 +51,34 @@ export default function OnboardingStep2() {
 
   return (
     <div className="animate-fade-in">
-      <div className="mb-8 text-center">
-        <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-50">
-          <Briefcase className="h-7 w-7 text-blue-600" />
+      <div className="mb-6 text-center">
+        <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-50">
+          <Briefcase className="h-6 w-6 text-blue-600" />
         </div>
         <h1 className="text-2xl font-bold text-ink">
           Quel est votre secteur ?
         </h1>
-        <p className="mt-2 text-sm text-ink-3">
-          Nous adapterons les KPIs et rapports a votre activite
+        <p className="mt-1.5 text-sm text-ink-3">
+          Votre dashboard sera personnalise avec les KPIs de votre metier
         </p>
       </div>
 
-      <div className="grid gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 max-h-[420px] overflow-y-auto pr-1">
         {SECTORS.map((sector) => (
           <button
             key={sector.id}
             type="button"
             onClick={() => setSelectedSector(sector.id)}
             className={cn(
-              "flex items-center gap-4 rounded-xl border-2 p-4 text-left transition-all duration-200",
+              "flex items-start gap-3 rounded-xl border-2 p-3.5 text-left transition-all duration-200",
               selectedSector === sector.id
                 ? "border-blue-600 bg-blue-50 shadow-sm"
-                : "border-gray-200 bg-white hover:border-blue-200 hover:bg-blue-50/50"
+                : "border-gray-100 bg-white hover:border-blue-200 hover:bg-blue-50/30"
             )}
           >
             <div
               className={cn(
-                "flex h-12 w-12 items-center justify-center rounded-xl transition-colors",
+                "flex h-9 w-9 shrink-0 items-center justify-center rounded-lg transition-colors",
                 selectedSector === sector.id
                   ? "bg-blue-600 text-white"
                   : "bg-gray-50 text-ink-3"
@@ -73,19 +86,24 @@ export default function OnboardingStep2() {
             >
               {SECTOR_ICONS[sector.id]}
             </div>
-            <span
-              className={cn(
-                "font-medium",
-                selectedSector === sector.id ? "text-blue-700" : "text-ink"
-              )}
-            >
-              {sector.label}
-            </span>
+            <div className="min-w-0">
+              <p
+                className={cn(
+                  "text-sm font-semibold leading-tight",
+                  selectedSector === sector.id ? "text-blue-700" : "text-ink"
+                )}
+              >
+                {sector.label}
+              </p>
+              <p className="mt-0.5 text-xs text-ink-3 leading-snug">
+                {sector.description}
+              </p>
+            </div>
           </button>
         ))}
       </div>
 
-      <div className="mt-8 flex gap-3">
+      <div className="mt-6 flex gap-3">
         <Button
           variant="outline"
           className="flex-1 h-11"
