@@ -21,6 +21,12 @@ logger = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
 COLUMN_DICTIONARY: Dict[str, str] = {
     # Revenue
+    "montant achat": "revenue",
+    "montant_achat": "revenue",
+    "montant achats": "revenue",
+    "montant": "revenue",
+    "total achat": "revenue",
+    "total achats": "revenue",
     "ca": "revenue",
     "chiffre d'affaires": "revenue",
     "chiffre d affaires": "revenue",
@@ -56,9 +62,11 @@ COLUMN_DICTIONARY: Dict[str, str] = {
     "nb": "quantity",
     "volume": "quantity",
     # Client
-    "client": "client_name",
     "nom client": "client_name",
     "nom_client": "client_name",
+    "client": "client_name",
+    "id client": "client_id",
+    "id_client": "client_id",
     "raison sociale": "client_name",
     "societe": "client_name",
     "soci\u00e9t\u00e9": "client_name",
@@ -126,6 +134,10 @@ COLUMN_DICTIONARY: Dict[str, str] = {
     "periode": "date",
     "p\u00e9riode": "date",
     # Facture
+    "nombre commandes": "order_count_raw",
+    "nombre_commandes": "order_count_raw",
+    "nb commandes": "order_count_raw",
+    "commandes": "order_count_raw",
     "facture": "invoice_id",
     "numero facture": "invoice_id",
     "num facture": "invoice_id",
