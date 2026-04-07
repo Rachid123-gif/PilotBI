@@ -11,10 +11,11 @@ import { WelcomeModal } from "@/components/dashboard/welcome-modal";
 import { GaugeChart } from "@/components/dashboard/gauge-chart";
 import { RankingTable } from "@/components/dashboard/ranking-table";
 import { ComparisonChart } from "@/components/dashboard/comparison-chart";
+import { DashboardSkeleton } from "@/components/dashboard/skeleton";
 import { useDashboard } from "@/hooks/use-dashboard";
 import { useUser } from "@/hooks/use-user";
 import type { PeriodId } from "@/lib/constants";
-import { CalendarDays, Loader2, FileUp } from "lucide-react";
+import { CalendarDays, FileUp, BarChart3, Sparkles, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 
@@ -105,31 +106,48 @@ export default function TableauDeBordPage() {
       <AiInsightCard />
 
       {isLoading ? (
-        <div className="flex items-center justify-center py-20">
-          <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
-          <span className="ml-3 text-sm text-ink-3">
-            Chargement de vos donnees...
-          </span>
-        </div>
+        <DashboardSkeleton />
       ) : !hasData ? (
-        /* Empty state */
-        <div className="flex flex-col items-center justify-center py-20 text-center">
-          <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-blue-50">
-            <FileUp className="h-8 w-8 text-blue-600" />
+        /* Premium empty state */
+        <div className="flex flex-col items-center justify-center py-16 text-center">
+          <div className="relative mb-6">
+            <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-50 to-indigo-50 shadow-sm">
+              <BarChart3 className="h-10 w-10 text-blue-500" />
+            </div>
+            <div className="absolute -right-1 -top-1 flex h-7 w-7 items-center justify-center rounded-full bg-amber-400 shadow-md">
+              <Sparkles className="h-3.5 w-3.5 text-white" />
+            </div>
           </div>
-          <h2 className="text-lg font-bold text-ink">
-            Uploadez vos donnees pour commencer
+          <h2 className="text-xl font-bold text-gray-900">
+            Votre dashboard est pret
           </h2>
-          <p className="mt-2 max-w-sm text-sm text-ink-3">
-            Importez votre fichier Excel ou CSV et votre dashboard
-            personnalise sera pret en 30 secondes.
+          <p className="mt-2 max-w-md text-sm text-gray-500 leading-relaxed">
+            Importez votre fichier Excel ou CSV de ventes.
+            En 30 secondes, vos KPIs, charts et analyse IA
+            seront disponibles.
           </p>
-          <Link href="/donnees/upload">
-            <Button className="mt-6 bg-blue-600 hover:bg-blue-700 text-white">
-              <FileUp className="mr-2 h-4 w-4" />
-              Importer mes donnees
-            </Button>
-          </Link>
+          <div className="mt-8 flex flex-col sm:flex-row gap-3">
+            <Link href="/donnees/upload">
+              <Button className="bg-blue-600 hover:bg-blue-700 text-white h-11 px-6 font-semibold shadow-md hover:shadow-lg transition-all hover:-translate-y-0.5">
+                <FileUp className="mr-2 h-4 w-4" />
+                Importer mes donnees
+              </Button>
+            </Link>
+          </div>
+          <div className="mt-8 flex items-center gap-6 text-[12px] text-gray-400">
+            <span className="flex items-center gap-1.5">
+              <span className="inline-block h-1.5 w-1.5 rounded-full bg-emerald-400" />
+              Excel, CSV supportes
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="inline-block h-1.5 w-1.5 rounded-full bg-emerald-400" />
+              Max 5 Mo
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="inline-block h-1.5 w-1.5 rounded-full bg-emerald-400" />
+              Donnees securisees
+            </span>
+          </div>
         </div>
       ) : (
         <>

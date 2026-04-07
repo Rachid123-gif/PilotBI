@@ -14,89 +14,83 @@ interface DashboardPieChartProps {
   className?: string;
 }
 
-const BLUE_PALETTE = [
-  "#2563EB",
-  "#3B82F6",
-  "#60A5FA",
-  "#93C5FD",
-  "#BFDBFE",
-  "#DBEAFE",
+const PALETTE = [
+  "#2563EB", "#0891B2", "#7C3AED", "#059669", "#F59E0B",
+  "#DC2626", "#0D9488", "#6366F1", "#EA580C", "#CA8A04",
 ];
 
-function CustomTooltip({
-  active,
-  payload,
-}: {
-  active?: boolean;
-  payload?: Array<{ name: string; value: number }>;
-}) {
+function CustomTooltip({ active, payload }: any) {
   if (!active || !payload?.[0]) return null;
 
   return (
-    <div className="rounded-lg border border-border bg-white px-3 py-2 shadow-lg">
-      <p className="text-xs font-medium text-ink-3">{payload[0].name}</p>
-      <p className="text-sm font-bold text-ink">
+    <div className="rounded-xl border-0 bg-gray-900 px-4 py-3 shadow-xl">
+      <p className="text-[11px] font-medium text-gray-400 mb-0.5">
+        {payload[0].name}
+      </p>
+      <p className="text-base font-bold text-white tabular-nums">
         {new Intl.NumberFormat("fr-MA", {
-          style: "currency",
-          currency: "MAD",
-          maximumFractionDigits: 0,
+          style: "currency", currency: "MAD", maximumFractionDigits: 0,
         }).format(payload[0].value)}
       </p>
     </div>
   );
 }
 
-export function DashboardPieChart({
-  title,
-  data,
-  className,
-}: DashboardPieChartProps) {
+export function DashboardPieChart({ title, data, className }: DashboardPieChartProps) {
   const total = data.reduce((sum, item) => sum + item.value, 0);
+  const sorted = [...data].sort((a, b) => b.value - a.value);
 
   return (
-    <Card className={`border-border/50 bg-white p-5 shadow-sm ${className}`}>
-      <h3 className="mb-4 text-sm font-semibold text-ink">{title}</h3>
+    <Card className={`border-0 bg-white p-6 shadow-sm hover:shadow-md transition-shadow ${className || ""}`}>
+      <h3 className="mb-5 text-sm font-bold text-gray-900">{title}</h3>
       <div className="flex items-center gap-6">
-        <ResponsiveContainer width="50%" height={220}>
-          <PieChart>
-            <Pie
-              data={data}
-              cx="50%"
-              cy="50%"
-              innerRadius={55}
-              outerRadius={85}
-              paddingAngle={3}
-              dataKey="value"
-              stroke="none"
-            >
-              {data.map((_, index) => (
-                <Cell
-                  key={index}
-                  fill={BLUE_PALETTE[index % BLUE_PALETTE.length]}
-                />
-              ))}
-            </Pie>
-            <Tooltip content={<CustomTooltip />} />
-          </PieChart>
-        </ResponsiveContainer>
+        <div className="relative" style={{ width: "45%", minWidth: 160 }}>
+          <ResponsiveContainer width="100%" height={200}>
+            <PieChart>
+              <Pie
+                data={sorted}
+                cx="50%"
+                cy="50%"
+                innerRadius={52}
+                outerRadius={82}
+                paddingAngle={3}
+                dataKey="value"
+                stroke="none"
+                animationBegin={0}
+                animationDuration={800}
+              >
+                {sorted.map((_, index) => (
+                  <Cell key={index} fill={PALETTE[index % PALETTE.length]} />
+                ))}
+              </Pie>
+              <Tooltip content={<CustomTooltip />} />
+            </PieChart>
+          </ResponsiveContainer>
+          {/* Center total */}
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+            <div className="text-center">
+              <p className="text-[10px] font-medium text-gray-400">Total</p>
+              <p className="text-sm font-bold text-gray-900 tabular-nums">
+                {total >= 1_000_000 ? `${(total / 1_000_000).toFixed(1)}M` : total >= 1_000 ? `${(total / 1_000).toFixed(0)}K` : total}
+              </p>
+            </div>
+          </div>
+        </div>
 
         {/* Legend */}
-        <div className="flex-1 space-y-2.5">
-          {data.map((item, index) => {
-            const percent = total > 0 ? ((item.value / total) * 100).toFixed(0) : 0;
+        <div className="flex-1 space-y-2">
+          {sorted.map((item, index) => {
+            const percent = total > 0 ? ((item.value / total) * 100).toFixed(0) : "0";
             return (
-              <div key={item.name} className="flex items-center gap-2">
+              <div key={item.name} className="flex items-center gap-2.5 group/item">
                 <div
-                  className="h-2.5 w-2.5 rounded-full shrink-0"
-                  style={{
-                    backgroundColor:
-                      BLUE_PALETTE[index % BLUE_PALETTE.length],
-                  }}
+                  className="h-3 w-3 rounded-[3px] shrink-0 transition-transform group-hover/item:scale-125"
+                  style={{ backgroundColor: PALETTE[index % PALETTE.length] }}
                 />
-                <span className="flex-1 text-xs text-ink-3 truncate">
+                <span className="flex-1 text-[12px] text-gray-500 truncate">
                   {item.name}
                 </span>
-                <span className="text-xs font-semibold text-ink tabular-nums">
+                <span className="text-[12px] font-bold text-gray-800 tabular-nums">
                   {percent}%
                 </span>
               </div>
