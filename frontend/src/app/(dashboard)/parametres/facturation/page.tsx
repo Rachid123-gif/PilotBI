@@ -58,9 +58,9 @@ export default function FacturationPage() {
               </Badge>
             </div>
             <p className="mt-1 text-sm text-ink-3">
-              {PLAN_PRICES[CURRENT_PLAN] === 0
+              {PLAN_PRICES[CURRENT_PLAN].monthly === 0
                 ? "Gratuit"
-                : `${PLAN_PRICES[CURRENT_PLAN]} MAD / mois`}
+                : `${PLAN_PRICES[CURRENT_PLAN].monthly} MAD / mois`}
             </p>
           </div>
           <Button variant="outline" size="sm">
@@ -130,7 +130,7 @@ export default function FacturationPage() {
               </h3>
               <div className="mt-1">
                 <span className="text-3xl font-bold text-ink">
-                  {PLAN_PRICES[planId]}
+                  {PLAN_PRICES[planId].monthly}
                 </span>
                 <span className="text-sm text-ink-3"> MAD / mois</span>
               </div>

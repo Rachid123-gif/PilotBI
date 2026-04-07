@@ -6,6 +6,7 @@ export interface Organization {
   id: string;
   name: string;
   sector: string | null;
+  sector_slug: string | null;
   city: string | null;
   employee_count: number | null;
   created_at: string;
@@ -21,6 +22,7 @@ export interface Profile {
   role: "owner" | "admin" | "member";
   language: "fr" | "ar";
   onboarding_completed: boolean;
+  welcome_seen: boolean;
   created_at: string;
   updated_at: string;
 }

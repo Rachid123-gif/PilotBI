@@ -16,7 +16,7 @@ export function AiInsightCard() {
 
     async function fetchInsights() {
       try {
-        const data = await api.post("/dashboard/insights");
+        const data = await api.post<{ content: string | null }>("/dashboard/insights");
         if (!cancelled && data.content) {
           setContent(data.content);
         }

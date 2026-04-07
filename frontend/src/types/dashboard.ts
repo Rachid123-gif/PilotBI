@@ -5,7 +5,7 @@
 import type { KpiType } from "@/lib/constants";
 
 export interface KpiCardData {
-  type: KpiType;
+  type: string;
   label: string;
   value: number;
   previousValue: number | null;

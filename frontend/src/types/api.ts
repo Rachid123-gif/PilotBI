@@ -29,12 +29,16 @@ export interface DashboardKpiResponse {
 }
 
 export interface KpiItem {
+  kpi_type: string;
   type: string;
+  label: string;
   value: number;
   previous_value: number | null;
+  change_pct: number | null;
   change_percent: number | null;
   trend: "up" | "down" | "stable";
   format: "currency" | "percent" | "number";
+  unit: string;
 }
 
 /** Dashboard chart data response */

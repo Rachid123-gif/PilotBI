@@ -23,7 +23,15 @@ export default function TableauDeBordPage() {
   const [showWelcome, setShowWelcome] = useState(false);
 
   const { user, profile, organization } = useUser();
-  const { kpis, charts, isLoading } = useDashboard(period);
+  const dashboard = useDashboard({ period });
+
+  // Extract data from dashboard response
+  const kpiList = dashboard.kpis?.kpis || [];
+  const chartList = dashboard.charts ? [
+    ...(dashboard.charts.monthly_sales?.length ? [{ kpi_type: "revenue", title: "Ventes mensuelles", chart_type: "bar" as const, data_points: dashboard.charts.monthly_sales }] : []),
+    ...(dashboard.charts.revenue_evolution?.length ? [{ kpi_type: "revenue_evo", title: "Evolution du CA", chart_type: "line" as const, data_points: dashboard.charts.revenue_evolution }] : []),
+  ] : [];
+  const isLoading = dashboard.isLoading;
 
   // Show welcome modal on first visit
   useEffect(() => {
@@ -44,10 +52,10 @@ export default function TableauDeBordPage() {
     ? getSectorDisplayName(organization.sector_slug)
     : undefined;
 
-  const hasData = kpis && kpis.length > 0;
+  const hasData = kpiList.length > 0;
 
   // Separate gauge-type KPIs from regular cards
-  const gaugeKpis = kpis?.filter(
+  const gaugeKpis = kpiList.filter(
     (k) =>
       k.unit === "%" &&
       [
@@ -65,9 +73,9 @@ export default function TableauDeBordPage() {
         "return_rate",
         "return_rate_ecom",
       ].includes(k.kpi_type)
-  ) || [];
+  );
 
-  const cardKpis = kpis?.filter((k) => !gaugeKpis.includes(k)) || [];
+  const cardKpis = kpiList.filter((k: any) => !gaugeKpis.includes(k));
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -134,7 +142,7 @@ export default function TableauDeBordPage() {
                   type: kpi.kpi_type,
                   label: kpi.label,
                   value: kpi.value,
-                  previousValue: kpi.previous_value ?? undefined,
+                  previousValue: kpi.previous_value ?? null,
                   changePercent: kpi.change_pct ?? null,
                   trend:
                     kpi.change_pct === null || kpi.change_pct === undefined
@@ -166,9 +174,9 @@ export default function TableauDeBordPage() {
           )}
 
           {/* Charts */}
-          {charts && charts.length > 0 && (
+          {chartList.length > 0 && (
             <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-              {charts.map((chart) =>
+              {chartList.map((chart: any) =>
                 chart.chart_type === "bar" ? (
                   <DashboardBarChart
                     key={chart.kpi_type}
@@ -179,7 +187,7 @@ export default function TableauDeBordPage() {
                   <DashboardPieChart
                     key={chart.kpi_type}
                     title={chart.title}
-                    data={chart.data_points.map((p) => ({
+                    data={chart.data_points.map((p: any) => ({
                       name: p.label,
                       value: p.value,
                     }))}
