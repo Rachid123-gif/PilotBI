@@ -54,12 +54,12 @@ export default function OnboardingStep5() {
         <div className="flex items-center justify-center gap-3 text-blue-700">
           <Rocket className="h-5 w-5" />
           <span className="font-semibold">
-            Votre dashboard sera pret en 48h
+            Votre dashboard est pret !
           </span>
         </div>
         <p className="mt-2 text-sm text-blue-600">
-          Notre equipe analyse vos donnees et configure vos KPIs
-          personnalises. Vous recevrez un email des que tout est pret.
+          Vos donnees ont ete analysees et vos KPIs sont configures.
+          Cliquez ci-dessous pour decouvrir votre tableau de bord.
         </p>
       </div>
 

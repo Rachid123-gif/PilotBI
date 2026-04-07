@@ -35,7 +35,7 @@ export function useUpload() {
       formData.append("file", file);
 
       const result = await api.upload<UploadResponse>(
-        "/api/v1/data-sources/upload",
+        "/upload",
         formData,
         (percent) => {
           setState((prev) => ({ ...prev, progress: percent }));

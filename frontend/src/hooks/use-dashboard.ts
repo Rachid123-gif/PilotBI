@@ -34,8 +34,8 @@ export function useDashboard(filters: DashboardFilters) {
       if (filters.customEnd) params.end = filters.customEnd;
 
       const [kpis, charts] = await Promise.all([
-        api.get<DashboardKpiResponse>("/api/v1/dashboard/kpis", { params }),
-        api.get<DashboardChartResponse>("/api/v1/dashboard/charts", { params }),
+        api.get<DashboardKpiResponse>("/dashboard/kpis", { params }),
+        api.get<DashboardChartResponse>("/dashboard", { params }),
       ]);
 
       setState({
