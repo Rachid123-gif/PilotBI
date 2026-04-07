@@ -1,12 +1,12 @@
 """
 PilotBI application configuration.
-Loads all settings from environment variables with validation.
+Loads settings from environment variables. Optional services have defaults.
 """
 
 from __future__ import annotations
 
 from functools import lru_cache
-from typing import List
+from typing import List, Optional
 
 from pydantic_settings import BaseSettings
 
@@ -14,32 +14,32 @@ from pydantic_settings import BaseSettings
 class Settings(BaseSettings):
     """Application settings loaded from environment variables."""
 
-    # ---------- Supabase ----------
+    # ---------- Supabase (required) ----------
     SUPABASE_URL: str
     SUPABASE_SERVICE_ROLE_KEY: str
     SUPABASE_JWT_SECRET: str
 
-    # ---------- Anthropic (Claude) ----------
-    ANTHROPIC_API_KEY: str
+    # ---------- Anthropic (optional — needed for AI reports) ----------
+    ANTHROPIC_API_KEY: str = ""
 
-    # ---------- Stripe ----------
-    STRIPE_SECRET_KEY: str
-    STRIPE_WEBHOOK_SECRET: str
-    STRIPE_PRICE_STARTER_MONTHLY: str
-    STRIPE_PRICE_STARTER_ANNUAL: str
-    STRIPE_PRICE_PRO_MONTHLY: str
-    STRIPE_PRICE_PRO_ANNUAL: str
-    STRIPE_PRICE_EQUIPE_MONTHLY: str
-    STRIPE_PRICE_EQUIPE_ANNUAL: str
+    # ---------- Stripe (optional — needed for billing) ----------
+    STRIPE_SECRET_KEY: str = ""
+    STRIPE_WEBHOOK_SECRET: str = ""
+    STRIPE_PRICE_STARTER_MONTHLY: str = ""
+    STRIPE_PRICE_STARTER_ANNUAL: str = ""
+    STRIPE_PRICE_PRO_MONTHLY: str = ""
+    STRIPE_PRICE_PRO_ANNUAL: str = ""
+    STRIPE_PRICE_EQUIPE_MONTHLY: str = ""
+    STRIPE_PRICE_EQUIPE_ANNUAL: str = ""
 
-    # ---------- Resend (email) ----------
-    RESEND_API_KEY: str
+    # ---------- Resend (optional — needed for email alerts) ----------
+    RESEND_API_KEY: str = ""
     RESEND_FROM_EMAIL: str = "PilotBI <noreply@pilotbi.com>"
 
-    # ---------- Twilio (WhatsApp) ----------
-    TWILIO_ACCOUNT_SID: str
-    TWILIO_AUTH_TOKEN: str
-    TWILIO_WHATSAPP_FROM: str
+    # ---------- Twilio (optional — needed for WhatsApp alerts) ----------
+    TWILIO_ACCOUNT_SID: str = ""
+    TWILIO_AUTH_TOKEN: str = ""
+    TWILIO_WHATSAPP_FROM: str = ""
 
     # ---------- CORS ----------
     CORS_ORIGINS: str = "http://localhost:3000"
