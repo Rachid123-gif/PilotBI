@@ -35,15 +35,24 @@ function buildUrl(
   path: string,
   params?: Record<string, string | number | boolean | undefined>
 ): string {
-  const url = new URL(path, BASE_URL);
+  // Concatenate base + path manually instead of using `new URL(path, base)`,
+  // because URL(absolute-path, base) strips the base's own path segment
+  // (e.g. the "/v1" in "https://pilotbi.onrender.com/v1").
+  const base = BASE_URL.replace(/\/+$/, "");
+  const normalizedPath = path.startsWith("/") ? path : `/${path}`;
+  const full = `${base}${normalizedPath}`;
+
   if (params) {
+    const searchParams = new URLSearchParams();
     Object.entries(params).forEach(([key, value]) => {
       if (value !== undefined) {
-        url.searchParams.set(key, String(value));
+        searchParams.set(key, String(value));
       }
     });
+    const qs = searchParams.toString();
+    return qs ? `${full}?${qs}` : full;
   }
-  return url.toString();
+  return full;
 }
 
 async function fetchApi<T>(

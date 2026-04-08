@@ -26,12 +26,9 @@ export default function TableauDeBordPage() {
   const { user, profile, organization } = useUser();
   const dashboard = useDashboard({ period });
 
-  // Extract data from dashboard response
-  const kpiList = dashboard.kpis?.kpis || [];
-  const chartList = dashboard.charts ? [
-    ...(dashboard.charts.monthly_sales?.length ? [{ kpi_type: "revenue", title: "Ventes mensuelles", chart_type: "bar" as const, data_points: dashboard.charts.monthly_sales }] : []),
-    ...(dashboard.charts.revenue_evolution?.length ? [{ kpi_type: "revenue_evo", title: "Evolution du CA", chart_type: "line" as const, data_points: dashboard.charts.revenue_evolution }] : []),
-  ] : [];
+  // Extract data from dashboard response (flat arrays from the backend).
+  const kpiList = dashboard.kpis;
+  const chartList = dashboard.charts;
   const isLoading = dashboard.isLoading;
 
   // Show welcome modal on first visit
