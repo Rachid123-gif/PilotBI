@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { createClient } from "@/lib/supabase/client";
 import { KpiCard } from "@/components/dashboard/kpi-card";
 import { DashboardBarChart } from "@/components/dashboard/bar-chart";
 import { DashboardLineChart } from "@/components/dashboard/line-chart";
@@ -22,6 +23,7 @@ import Link from "next/link";
 export default function TableauDeBordPage() {
   const [period, setPeriod] = useState<PeriodId>("this_month");
   const [showWelcome, setShowWelcome] = useState(false);
+  const [hasDismissedWelcome, setHasDismissedWelcome] = useState(false);
 
   const { user, profile, organization } = useUser();
   const dashboard = useDashboard({ period });
@@ -31,18 +33,26 @@ export default function TableauDeBordPage() {
   const chartList = dashboard.charts;
   const isLoading = dashboard.isLoading;
 
-  // Show welcome modal on first visit
+  // Show welcome modal on first visit — but never re-show after the user
+  // has dismissed it in this session, even if useUser refetches a stale
+  // profile where welcome_seen is still false.
   useEffect(() => {
-    if (profile && !profile.welcome_seen) {
+    if (profile && !profile.welcome_seen && !hasDismissedWelcome) {
       setShowWelcome(true);
     }
-  }, [profile]);
+  }, [profile, hasDismissedWelcome]);
 
   function handleDismissWelcome() {
     setShowWelcome(false);
-    // Mark as seen (fire-and-forget)
+    setHasDismissedWelcome(true);
+    // Persist welcome_seen=true directly via Supabase (no backend route needed).
     if (profile?.id) {
-      fetch("/api/profile/welcome-seen", { method: "POST" }).catch(() => {});
+      const supabase = createClient();
+      supabase
+        .from("profiles")
+        .update({ welcome_seen: true })
+        .eq("id", profile.id)
+        .then(() => {});
     }
   }
 
